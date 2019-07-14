@@ -14,8 +14,12 @@ class Bot {
     }
 
     async loadBrowser() {
-        this.browser = await puppeteer.launch();
-        this.page = await this.browser.newPage();
+        try {
+            this.browser = await puppeteer.launch();
+            this.page = await this.browser.newPage();
+        } catch (err) {
+            console.log('Initialisation failed 🌩', err);
+        }
     }
 
     async login(mail, password) {
@@ -106,6 +110,7 @@ class Bot {
         if (message != null) {
             this.saveData(lessons);
             this.sendSms(message, creds.phone);
+            this.sendMail(message, creds.email);
         }
     }
 
@@ -132,7 +137,7 @@ class Bot {
         await this.browser.close();
     }
 
-    async sendMail(content) {
+    async sendMail(content, email) {
         let transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -143,14 +148,14 @@ class Bot {
 
         let mailOptions = {
             from: 'skimanagerbot@gmail.com',
-            to: 'kuba300698@gmail.com',
+            to: email,
             subject: 'Skimanager bot',
             text: content,
         };
 
         transporter.sendMail(mailOptions, (err, info) => {
             if (err) throw err;
-            else console.log('Mail sent');
+            else console.log('Mail sent ✉️');
         });
     }
 
@@ -162,7 +167,7 @@ class Bot {
                 body: content,
                 to: `whatsapp:${phoneNumber}`,
             })
-            .then(() => console.log('Message sent ✉️'))
+            .then(() => console.log('Message sent 📱'))
             .catch(err => console.log('Sending failed 🔥', err));
     }
 }
