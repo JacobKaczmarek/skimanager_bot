@@ -70,7 +70,7 @@ class Bot {
     }
 
     compareLessons(lessons) {
-        let old = require('./lessons.json');
+        let old = JSON.parse(fs.readFileSync('lessons.json'));
         let message = null;
 
         if (old.date == new Date().getDate()) {
@@ -166,7 +166,7 @@ class Bot {
             .catch(err => console.log('Sending failed 🔥', err));
     }
 }
-(async () => {
+setInterval(async () => {
     const bot = new Bot();
     await bot.loadBrowser();
     await bot.goto('https://surfpoint.skimanager.pl/');
@@ -176,4 +176,4 @@ class Bot {
         console.log('Done 🌈');
     }
     await bot.close();
-})();
+}, 1000 * 30);
