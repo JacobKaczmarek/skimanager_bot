@@ -1,11 +1,12 @@
 const puppeteer = require('puppeteer');
 const nodemailer = require('nodemailer');
-const creds = require('./credentials.json');
+
 const fs = require('fs');
+const creds = require('./credentials.json');
 
 const accountSid = creds.accountSid;
 const authToken = creds.authToken;
-const client = require('twilio')(accountSid, authToken);
+const twilio = require('twilio')(accountSid, authToken);
 
 class Bot {
     constructor() {
@@ -58,10 +59,12 @@ class Bot {
             return Array.from(
                 document.querySelectorAll('.calendar-mobile-box '),
             ).map(lesson => ({
-                time: lesson.querySelector('.text-muted').textContent.trim(),
-                student: lesson
-                    .querySelector('div > span > a')
+                time: lesson
+                    .querySelector('div > span.text-muted')
                     .textContent.trim(),
+                student: lesson.querySelector('div > span > a')
+                    ? lesson.querySelector('div > span > a').textContent.trim()
+                    : 'Obóz ⛺️',
             }));
         });
     }
@@ -161,17 +164,19 @@ class Bot {
 
     async sendSms(content, phoneNumber) {
         console.log(`Sending message to ${phoneNumber}`);
-        client.messages
+        twilio.messages
             .create({
                 from: 'whatsapp:+14155238886',
                 body: content,
                 to: `whatsapp:${phoneNumber}`,
             })
-            .then(() => console.log('Message sent 📱'))
+            .then(succ =>
+                console.log(`Message sent 📱 \n Message sid: ${succ.sid}`),
+            )
             .catch(err => console.log('Sending failed 🔥', err));
     }
 }
-setInterval(async () => {
+(async () => {
     const bot = new Bot();
     await bot.loadBrowser();
     await bot.goto('https://surfpoint.skimanager.pl/');
@@ -181,4 +186,4 @@ setInterval(async () => {
         console.log('Done 🌈');
     }
     await bot.close();
-}, 1000 * 30);
+})();
